@@ -1,0 +1,23 @@
+{
+  "name": "kc-pickleball-schedule-manager",
+  "version": "0.1.0",
+  "description": "関東地区ピックル会 練習日程・出欠管理アプリ",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "push": "clasp push"
+  },
+  "keywords": [
+    "pickleball",
+    "schedule",
+    "gas"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "fast-check": "^4.8.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.9"
+  }
+}
