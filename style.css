@@ -454,6 +454,66 @@ body {
   padding: 8px 0;
 }
 
+/* Participant names list */
+.participant-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.participant-name {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  background: var(--success-bg);
+  color: var(--success);
+  border-radius: 20px;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.participant-name.maybe {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+.participant-name.current-user {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.3);
+}
+
+/* My attendance button */
+.my-attendance {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-my-attendance {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition);
+}
+
+.btn-my-attendance:hover {
+  border-color: var(--primary);
+  background: rgba(125, 211, 252, 0.08);
+}
+
+.btn-my-attendance strong {
+  color: var(--primary);
+}
+
 /* --------------------------------------------------------------------------
    Buttons
    -------------------------------------------------------------------------- */

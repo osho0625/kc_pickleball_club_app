@@ -7,7 +7,14 @@
 const SPREADSHEET_ID = '1fL-p266yVU2M8CZv2spousWvpY4TmjIv';
 const HEADER_ROW = 5;
 const DATA_START_ROW = 6;
-const MEMBER_START_COL_INDEX = 8;
+// 実際のカラム配置（0始まり）: A=空(0), B=日付(1), C=曜日(2), D-E=場所(3), F=予約ID(5), G=時間(6), H=参加人数(7), I以降=メンバー
+const COL_DATE = 1;       // B列
+const COL_DAYOFWEEK = 2;  // C列
+const COL_VENUE = 3;      // D列（場所）
+const COL_RESERVATION = 5;// F列
+const COL_TIME = 6;       // G列（時間帯 "19:00〜21:00"）
+const COL_PARTICIPANTS = 7;// H列
+const MEMBER_START_COL_INDEX = 8; // I列以降
 
 // ===== レスポンスビルダー =====
 function successResponse(data) {
@@ -151,7 +158,10 @@ function getSessions() {
   var members = [];
   for (var i = 0; i < headerVals.length; i++) {
     var name = String(headerVals[i]).trim();
-    if (name !== '') members.push(name);
+    // メンバー名でないもの（会場費、集金、収支、体験、空白）を除外
+    if (name !== '' && name !== '会場費' && name !== '集金' && name !== '収支' && name !== '体験') {
+      members.push(name);
+    }
   }
 
   var numRows = lastRow - DATA_START_ROW + 1;
@@ -159,7 +169,8 @@ function getSessions() {
   var sessions = [];
   for (var r = 0; r < data.length; r++) {
     var row = data[r];
-    if (!row[0] && row[0] !== 0) continue;
+    // B列（日付）が空の行はスキップ
+    if (!row[COL_DATE] && row[COL_DATE] !== 0) continue;
     sessions.push(rowToSession(row, DATA_START_ROW + r, members));
   }
   return { sessions: sessions, members: members };
@@ -170,16 +181,28 @@ function rowToSession(row, rowIndex, memberNames) {
   for (var i = 0; i < memberNames.length; i++) {
     attendance.push({ memberName: memberNames[i], status: parseStatus(row[MEMBER_START_COL_INDEX + i]), note: parseNote(row[MEMBER_START_COL_INDEX + i]) });
   }
+  // G列の時間帯 "19:00〜21:00" or "19：00～21：00" を分割
+  var timeStr = String(row[COL_TIME] || '');
+  var startTime = '';
+  var endTime = '';
+  var timeParts = timeStr.replace(/：/g, ':').split(/[〜～~ー−-]/);
+  if (timeParts.length >= 2) {
+    startTime = formatTime(timeParts[0].trim());
+    endTime = formatTime(timeParts[1].trim());
+  } else if (timeParts.length === 1) {
+    startTime = formatTime(timeParts[0].trim());
+  }
+
   return {
     rowIndex: rowIndex,
-    date: formatDate(row[0]),
-    dayOfWeek: String(row[1] || ''),
-    venue: String(row[2] || ''),
-    startTime: formatTime(row[3]),
-    endTime: formatTime(row[4]),
-    reservationId: String(row[5] || ''),
-    notes: String(row[6] || ''),
-    participantCount: Number(row[7]) || 0,
+    date: formatDate(row[COL_DATE]),
+    dayOfWeek: String(row[COL_DAYOFWEEK] || ''),
+    venue: String(row[COL_VENUE] || ''),
+    startTime: startTime,
+    endTime: endTime,
+    reservationId: String(row[COL_RESERVATION] || ''),
+    notes: '',
+    participantCount: Number(row[COL_PARTICIPANTS]) || 0,
     attendance: attendance
   };
 }
@@ -214,10 +237,14 @@ function withLock(fn) {
 
 // ===== 行内容検証 =====
 function verifyRowContent(sheet, rowIndex, expectedDate, expectedVenue, expectedStartTime) {
-  var row = sheet.getRange(rowIndex, 1, 1, 4).getValues()[0];
-  var actualDate = formatDate(row[0]);
-  var actualVenue = String(row[2]);
-  var actualStartTime = formatTime(row[3]);
+  var row = sheet.getRange(rowIndex, 1, 1, COL_TIME + 1).getValues()[0];
+  var actualDate = formatDate(row[COL_DATE]);
+  var actualVenue = String(row[COL_VENUE]);
+  // G列の時間帯から開始時刻を抽出
+  var timeStr = String(row[COL_TIME] || '').replace(/：/g, ':');
+  var timeParts = timeStr.split(/[〜～~ー−-]/);
+  var actualStartTime = timeParts.length > 0 ? formatTime(timeParts[0].trim()) : '';
+  
   if (actualDate !== expectedDate || actualVenue !== expectedVenue || actualStartTime !== expectedStartTime) {
     return errorResponse('ROW_MISMATCH', '行の内容が変更されています。再読み込みしてください');
   }

@@ -293,6 +293,9 @@ export async function handleMemberSelect(name) {
 
 /**
  * セッション一覧を描画
+ * - 過去のセッションは表示しない
+ * - 今日に近い順（日付昇順）
+ * - 表示: 場所、時間、参加人数、途中参加人数、参加者名
  */
 export function renderSessionList() {
   const container = document.getElementById('screen-main');
@@ -301,6 +304,9 @@ export function renderSessionList() {
   const today = getTodayStr();
   const sessions = AppState.sessions;
   const currentUser = AppState.currentUser;
+
+  // 過去のセッションを除外（今日以降のみ表示）
+  const upcomingSessions = sessions.filter(s => !isPastSession(s.date, today));
 
   let html = '<div class="session-list-header">';
   html += `<h2 class="screen-title">練習日一覧</h2>`;
@@ -311,11 +317,11 @@ export function renderSessionList() {
   html += '<button class="btn-settings" data-action="open-settings" aria-label="設定">⚙️</button>';
   html += '</div></div>';
 
-  if (sessions.length === 0) {
-    html += '<p class="empty-message">練習日が登録されていません。</p>';
+  if (upcomingSessions.length === 0) {
+    html += '<p class="empty-message">今後の練習日が登録されていません。</p>';
   } else {
     html += '<div class="session-cards">';
-    sessions.forEach((session, index) => {
+    upcomingSessions.forEach((session) => {
       html += buildSessionCard(session, currentUser, today);
     });
     html += '</div>';
@@ -326,17 +332,18 @@ export function renderSessionList() {
 
 /**
  * 1つのセッションカードHTML生成
- * @param {Object} session - Practice_Session
- * @param {string} currentUser - 現在のユーザー名
- * @param {string} today - 今日の日付 (YYYY-MM-DD)
- * @returns {string} HTML文字列
+ * 表示: 日付、場所、時間、参加人数、途中参加人数、参加者名
  */
 export function buildSessionCard(session, currentUser, today) {
   const past = isPastSession(session.date, today);
-  const pastClass = past ? ' past' : '';
-  const participantCount = countParticipants(session.attendance);
+  const attendance = session.attendance || [];
+  
+  // 参加者（○）と途中参加者（△）を分ける
+  const participants = attendance.filter(a => a.status === '○');
+  const maybeParticipants = attendance.filter(a => a.status === '△');
+  const totalCount = participants.length + maybeParticipants.length;
 
-  let html = `<div class="session-card${pastClass}" data-row-index="${session.rowIndex}">`;
+  let html = `<div class="session-card" data-row-index="${session.rowIndex}">`;
 
   // ヘッダー部分
   html += '<div class="session-card-header">';
@@ -352,20 +359,45 @@ export function buildSessionCard(session, currentUser, today) {
   html += '<div class="session-info">';
   html += `<div class="session-venue">📍 ${escapeHtml(session.venue)}</div>`;
   html += `<div class="session-time">🕐 ${escapeHtml(session.startTime)}〜${escapeHtml(session.endTime)}</div>`;
-  html += `<div class="session-participants">👥 ${participantCount}人参加予定</div>`;
-  if (session.reservationId) {
-    html += `<div class="session-reservation">🎫 ${escapeHtml(session.reservationId)}</div>`;
-  }
-  if (session.notes) {
-    html += `<div class="session-notes">📝 ${escapeHtml(session.notes)}</div>`;
+  html += `<div class="session-participants">👥 ${totalCount}人参加`;
+  if (maybeParticipants.length > 0) {
+    html += `（うち途中参加 ${maybeParticipants.length}人）`;
   }
   html += '</div>';
+  html += '</div>';
 
-  // 出欠部分
+  // 参加者名リスト
   html += '<div class="session-attendance">';
-  html += buildAttendanceRow(session.attendance, currentUser, session.rowIndex, past);
-  html += '</div>';
+  if (participants.length > 0 || maybeParticipants.length > 0) {
+    html += '<div class="participant-names">';
+    // ○参加者
+    participants.forEach(a => {
+      const isMe = a.memberName === currentUser;
+      html += `<span class="participant-name${isMe ? ' current-user' : ''}">${escapeHtml(a.memberName)}</span>`;
+    });
+    // △途中参加者
+    maybeParticipants.forEach(a => {
+      const isMe = a.memberName === currentUser;
+      const noteText = a.note ? `(${a.note})` : '(未定)';
+      html += `<span class="participant-name maybe${isMe ? ' current-user' : ''}">${escapeHtml(a.memberName)}${escapeHtml(noteText)}</span>`;
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="no-attendance">まだ参加者がいません</div>';
+  }
 
+  // 自分の出欠変更ボタン
+  if (!AppState.offline && currentUser) {
+    const myAtt = attendance.find(a => a.memberName === currentUser);
+    const myStatus = myAtt ? formatAttendance(myAtt.status, myAtt.note) : '未回答';
+    html += `<div class="my-attendance">`;
+    html += `<button class="btn-my-attendance" data-action="change-attendance" data-row-index="${session.rowIndex}" data-member="${escapeHtml(currentUser)}">`;
+    html += `自分の出欠: <strong>${escapeHtml(myStatus)}</strong> ← タップで変更`;
+    html += `</button>`;
+    html += `</div>`;
+  }
+
+  html += '</div>';
   html += '</div>';
   return html;
 }
