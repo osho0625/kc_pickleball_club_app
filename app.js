@@ -15,6 +15,10 @@ import {
   getCachedData,
   getCurrentUser,
   setCurrentUser,
+  registerServiceWorker,
+  subscribePush,
+  unsubscribePush,
+  isPushEnabled,
 } from './common.js';
 
 // =============================================================================
@@ -140,6 +144,9 @@ function escapeHtml(str) {
 export async function init() {
   // グローバルイベントハンドラ登録
   setupGlobalHandlers();
+
+  // Service Worker登録（Push通知用）
+  registerServiceWorker();
 
   const user = getCurrentUser();
   if (user) {
@@ -872,6 +879,20 @@ export function renderSettings() {
   }
   html += '</div>';
 
+  // Push通知
+  html += '<div class="settings-section">';
+  html += '<h3>Push通知</h3>';
+  const pushEnabled = isPushEnabled();
+  if (pushEnabled) {
+    html += '<p class="push-status">✅ 通知ON</p>';
+    html += '<button class="btn-secondary btn-danger-outline" data-action="disable-push">通知をOFFにする</button>';
+  } else {
+    html += '<p class="push-status">通知OFF</p>';
+    html += '<button class="btn-secondary" data-action="enable-push">通知をONにする</button>';
+  }
+  html += '<p class="muted-text">練習日当日の8:00と17:30に通知が届きます。</p>';
+  html += '</div>';
+
   // 戻るボタン
   html += '<div class="settings-section">';
   html += '<button class="btn-primary" data-action="back-to-main">← 戻る</button>';
@@ -1130,6 +1151,14 @@ function setupGlobalHandlers() {
         renderSessionList();
         break;
 
+      case 'enable-push':
+        handleEnablePush();
+        break;
+
+      case 'disable-push':
+        handleDisablePush();
+        break;
+
       default:
         break;
     }
@@ -1161,6 +1190,34 @@ function setupGlobalHandlers() {
 // =============================================================================
 // 再試行アクション（エラーバナーから呼ばれる）
 // =============================================================================
+
+/**
+ * Push通知を有効化する
+ */
+async function handleEnablePush() {
+  setLoading(true);
+  const success = await subscribePush(AppState.currentUser);
+  setLoading(false);
+  if (success) {
+    renderSettings();
+  } else {
+    showError('通知の有効化に失敗しました。ブラウザの通知設定を確認してください。');
+  }
+}
+
+/**
+ * Push通知を無効化する
+ */
+async function handleDisablePush() {
+  setLoading(true);
+  const success = await unsubscribePush();
+  setLoading(false);
+  if (success) {
+    renderSettings();
+  } else {
+    showError('通知の無効化に失敗しました。');
+  }
+}
 
 /**
  * 再試行（エラーバナーのリトライボタン用）

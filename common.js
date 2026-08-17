@@ -10,9 +10,18 @@
 /** GAS WebアプリURL（デプロイ後に設定） */
 export const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyS3Spt0RRnmNgRxvOzFOfEmylh4m_G5ezUa_yyJ2Rbg2uWPD_8qyudBzENVREPH_7D/exec';
 
+/** Supabase設定（Push通知用） */
+const SUPABASE_URL = 'https://kcukmlrwrfmahagbqhpl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjdWttbHJ3cmZtYWhhZ2JxaHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NDQ0MTgsImV4cCI6MjEwMjUyMDQxOH0.6ptYoF79utLV1BG43AiSkHj0VMr3DtzFXcz-a5o9oqI';
+
+/** VAPID公開鍵（generate-vapid-keys.jsで生成したものを設定） */
+const VAPID_PUBLIC_KEY = 'BIYUoBoj99JEl1CpQ_mlLVLJ-5IhOCuog8844y7nT3JJy8LtRrm78l6SAa5aU0Whyort46BRzsCoVN_1bD_6k1A';
+
 /** LocalStorageキー */
 const CACHE_KEY = 'pb_cache';
 const USER_KEY = 'pb_currentUser';
+const DEVICE_ID_KEY = 'pb_device_id';
+const PUSH_ENABLED_KEY = 'pb_push_enabled';
 
 // =============================================================================
 // API通信
@@ -276,4 +285,158 @@ export function getCurrentUser() {
  */
 export function setCurrentUser(name) {
   localStorage.setItem(USER_KEY, name);
+}
+
+
+// =============================================================================
+// Push通知
+// =============================================================================
+
+/**
+ * デバイスIDを取得（なければ生成して保存）
+ * @returns {string} UUID形式のデバイスID
+ */
+export function getDeviceId() {
+  let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
+}
+
+/**
+ * Push通知が有効かどうか
+ * @returns {boolean}
+ */
+export function isPushEnabled() {
+  return localStorage.getItem(PUSH_ENABLED_KEY) === 'true';
+}
+
+/**
+ * Push通知の有効/無効を保存
+ * @param {boolean} enabled
+ */
+export function setPushEnabled(enabled) {
+  localStorage.setItem(PUSH_ENABLED_KEY, String(enabled));
+}
+
+/**
+ * Service Workerを登録する
+ * @returns {Promise<ServiceWorkerRegistration|null>}
+ */
+export async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service Worker非対応ブラウザです');
+    return null;
+  }
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js');
+    return registration;
+  } catch (error) {
+    console.error('Service Worker登録失敗:', error);
+    return null;
+  }
+}
+
+/**
+ * Push通知の購読を作成し、Supabaseに保存する
+ * @param {string|null} memberName - メンバー名
+ * @returns {Promise<boolean>} 成功時true
+ */
+export async function subscribePush(memberName) {
+  try {
+    const registration = await registerServiceWorker();
+    if (!registration) return false;
+
+    // 通知権限リクエスト
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.warn('通知権限が拒否されました');
+      return false;
+    }
+
+    // 既存の購読を確認
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      // 新規購読作成
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    // Supabaseにupsert
+    const deviceId = getDeviceId();
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        device_id: deviceId,
+        subscription: subscription.toJSON(),
+        member_name: memberName || null,
+      }),
+    });
+
+    if (response.ok || response.status === 201) {
+      setPushEnabled(true);
+      return true;
+    }
+    console.error('購読登録失敗:', response.status);
+    return false;
+  } catch (error) {
+    console.error('Push購読エラー:', error);
+    return false;
+  }
+}
+
+/**
+ * Push通知の購読を解除する
+ * @returns {Promise<boolean>} 成功時true
+ */
+export async function unsubscribePush() {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      await subscription.unsubscribe();
+    }
+
+    // Supabaseから削除
+    const deviceId = getDeviceId();
+    await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?device_id=eq.${deviceId}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+    });
+
+    setPushEnabled(false);
+    return true;
+  } catch (error) {
+    console.error('Push購読解除エラー:', error);
+    return false;
+  }
+}
+
+/**
+ * Base64 URL文字列をUint8Arrayに変換（VAPID鍵変換用）
+ * @param {string} base64String - Base64 URL エンコードされた文字列
+ * @returns {Uint8Array}
+ */
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }

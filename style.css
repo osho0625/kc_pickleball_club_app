@@ -1201,3 +1201,19 @@ select:focus-visible {
     background: #fff;
   }
 }
+
+/* Push通知設定 */
+.push-status {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.btn-danger-outline {
+  border-color: var(--color-danger, #e74c3c);
+  color: var(--color-danger, #e74c3c);
+}
+
+.btn-danger-outline:hover {
+  background: var(--color-danger, #e74c3c);
+  color: #fff;
+}
