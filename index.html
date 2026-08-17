@@ -3,82 +3,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>関東地区ピックル会｜クラブ公式サイト</title>
-  <meta name="description" content="関東地区ピックル会の公式サイト。活動内容、練習スケジュール、参加方法、問い合わせ先をご案内します。" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="関東地区ピックル会の練習日程・出欠管理アプリ" />
+  <link rel="manifest" href="manifest.json" />
+  <title>関東地区ピックル会｜練習日管理</title>
   <link rel="stylesheet" href="style.css" />
-  <script defer src="common.js"></script>
 </head>
 <body>
-  <div id="site-header"></div>
+  <div class="container">
+    <!-- ヘッダー -->
+    <header class="app-header" role="banner">
+      <h1 class="app-title">関東地区ピックル会</h1>
+      <p class="app-subtitle">練習日程・出欠管理</p>
+    </header>
 
-  <main>
-    <div class="container">
-      
-<section class="hero" aria-label="トップ">
-  <div class="hero-grid">
-    <div class="hero-card">
-      <div class="kicker"><span class="dot" aria-hidden="true"></span> みんなで楽しく、しっかり上達。</div>
-      <h1>関東地区ピックル会<br/>練習・交流・大会参加まで。</h1>
-      <p class="lead">
-        関東地区ピックル会は、初心者〜経験者まで幅広く参加できるクラブです。
-        基礎練習・ゲーム形式・交流会を中心に、無理なく続けられる活動を目指しています。
-      </p>
+    <!-- エラー / オフラインバナー -->
+    <div id="error-banner" class="error-banner" role="alert" aria-live="polite" style="display:none;"></div>
 
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="schedule.html">直近の練習を見る</a>
-        <a class="btn" href="contact.html">問い合わせ</a>
-      </div>
-
-      <div class="pill" role="note">
-        <span>🎽 <b>対象</b>：初心者OK</span>
-        <span>📍 <b>地域</b>：関東（仮）</span>
-        <span>🕒 <b>頻度</b>：週1〜2回（仮）</span>
-      </div>
+    <!-- ローディングスピナー -->
+    <div id="loading-spinner" class="loading-spinner" role="status" aria-label="読み込み中" style="display:none;">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="sr-only">読み込み中...</span>
     </div>
 
-    <div class="side" aria-label="サイド情報">
-      <div class="mini">
-        <h3>お知らせ</h3>
-        <p>・体験参加はいつでも歓迎です（要連絡）<br/>
-           ・大会参加や交流会も不定期で実施します（仮）</p>
-      </div>
-      <div class="mini">
-        <h3>持ち物</h3>
-        <p>動きやすい服装／室内シューズ（必要な場合）／飲み物。<br/>
-           ラケット等は体験用の貸出がある想定です（仮）。</p>
-      </div>
-      <div class="mini">
-        <h3>雰囲気</h3>
-        <p>ガチ勢だけの場ではありません。<br/>
-           「できる範囲で楽しく」を大事にしています。</p>
-      </div>
-    </div>
-  </div>
-</section>
+    <!-- メンバー選択画面 -->
+    <main id="screen-member-select" class="screen" role="main" aria-label="メンバー選択画面" style="display:none;">
+    </main>
 
-<section aria-label="ショートカット">
-  <div class="section-title">
-    <h2>はじめての方へ</h2>
-    <p>迷いやすい情報をまとめました</p>
+    <!-- メイン画面（セッション一覧） -->
+    <main id="screen-main" class="screen" role="main" aria-label="練習日一覧画面" style="display:none;">
+    </main>
+
+    <!-- フォーム画面（追加/編集） -->
+    <section id="screen-form" class="screen" role="region" aria-label="練習日フォーム" style="display:none;">
+    </section>
+
+    <!-- 設定画面 -->
+    <section id="screen-settings" class="screen" role="region" aria-label="設定" style="display:none;">
+    </section>
   </div>
 
-  <div class="grid-2">
-    <div class="card">
-      <h3>練習日程</h3>
-      <p>直近の練習予定・持ち物・参加方法を確認できます。</p>
-      <p style="margin-top:10px;"><a class="btn btn-primary" href="schedule.html">練習日程を見る</a></p>
-    </div>
-    <div class="card">
-      <h3>体験参加</h3>
-      <p>体験参加の流れ・参加費（例）・注意点をまとめています。</p>
-      <p style="margin-top:10px;"><a class="btn btn-primary" href="join.html">体験参加の方法</a></p>
-    </div>
-  </div>
-</section>
-
-    </div>
-  </main>
-
-  <div id="site-footer"></div>
+  <!-- Scripts (ES Modules) -->
+  <script type="module" src="common.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
