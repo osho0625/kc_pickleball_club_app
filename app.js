@@ -292,6 +292,11 @@ export async function handleMemberSelect(name) {
   showScreen('main');
   await fetchAndRender();
   renderSessionList();
+
+  // 初回メンバー選択時にPush通知の購読を試みる
+  if (!isPushEnabled()) {
+    subscribePush(name);
+  }
 }
 
 // =============================================================================
