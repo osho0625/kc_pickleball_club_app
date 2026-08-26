@@ -331,7 +331,9 @@ export async function registerServiceWorker() {
     return null;
   }
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js');
+    // GitHub Pages等サブディレクトリ配信対応
+    const basePath = new URL('.', import.meta.url).pathname;
+    const registration = await navigator.serviceWorker.register(basePath + 'sw.js');
     return registration;
   } catch (error) {
     console.error('Service Worker登録失敗:', error);
