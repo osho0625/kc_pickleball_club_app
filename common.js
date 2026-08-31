@@ -11,7 +11,7 @@
 export const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyS3Spt0RRnmNgRxvOzFOfEmylh4m_G5ezUa_yyJ2Rbg2uWPD_8qyudBzENVREPH_7D/exec';
 
 /** Supabase設定（Push通知用） */
-const SUPABASE_URL = 'https://ynecezxnltigplrfzzoh.supabase.co';
+const SUPABASE_URL = 'https://kcukmlrwrfmahagbqhpl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjdWttbHJ3cmZtYWhhZ2JxaHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NDQ0MTgsImV4cCI6MjEwMjUyMDQxOH0.6ptYoF79utLV1BG43AiSkHj0VMr3DtzFXcz-a5o9oqI';
 
 /** VAPID公開鍵（generate-vapid-keys.jsで生成したものを設定） */
