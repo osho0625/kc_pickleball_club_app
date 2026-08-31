@@ -11,8 +11,8 @@
 export const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyS3Spt0RRnmNgRxvOzFOfEmylh4m_G5ezUa_yyJ2Rbg2uWPD_8qyudBzENVREPH_7D/exec';
 
 /** Supabase設定（Push通知用） */
-const SUPABASE_URL = 'https://kcukmlrwrfmahagbqhpl.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjdWttbHJ3cmZtYWhhZ2JxaHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NDQ0MTgsImV4cCI6MjEwMjUyMDQxOH0.6ptYoF79utLV1BG43AiSkHj0VMr3DtzFXcz-a5o9oqI';
+const SUPABASE_URL = 'https://azidmiauoyjieuteuyqx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6aWRtaWF1b3lqaWV1dGV1eXF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNTIxMDIsImV4cCI6MjEwMzcyODEwMn0.aYOYpuTxPGvL1zkwfzgj_ZUP3cVeXjaeR2PmOGAbtj4';
 
 /** VAPID公開鍵（generate-vapid-keys.jsで生成したものを設定） */
 const VAPID_PUBLIC_KEY = 'BIYUoBoj99JEl1CpQ_mlLVLJ-5IhOCuog8844y7nT3JJy8LtRrm78l6SAa5aU0Whyort46BRzsCoVN_1bD_6k1A';
