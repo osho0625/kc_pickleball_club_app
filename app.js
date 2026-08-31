@@ -398,14 +398,17 @@ export function buildSessionCard(session, currentUser, today) {
     html += '<div class="no-attendance">まだ参加者がいません</div>';
   }
 
-  // 自分の出欠変更ボタン
+  // 自分の出欠ボタン（○△×の3ボタン）
   if (!AppState.offline && currentUser) {
     const myAtt = attendance.find(a => a.memberName === currentUser);
-    const myStatus = myAtt ? formatAttendance(myAtt.status, myAtt.note) : '未回答';
+    const myStatus = myAtt ? myAtt.status : '';
     html += `<div class="my-attendance">`;
-    html += `<button class="btn-my-attendance" data-action="change-attendance" data-row-index="${session.rowIndex}" data-member="${escapeHtml(currentUser)}">`;
-    html += `自分の出欠: <strong>${escapeHtml(myStatus)}</strong> ← タップで変更`;
-    html += `</button>`;
+    html += `<span class="my-attendance-label">出欠:</span>`;
+    html += `<div class="my-attendance-buttons">`;
+    html += `<button class="att-btn att-btn-yes${myStatus === '○' ? ' active' : ''}" data-action="quick-attendance" data-row-index="${session.rowIndex}" data-member="${escapeHtml(currentUser)}" data-status="○" aria-label="参加">○</button>`;
+    html += `<button class="att-btn att-btn-maybe${myStatus === '△' ? ' active' : ''}" data-action="quick-attendance" data-row-index="${session.rowIndex}" data-member="${escapeHtml(currentUser)}" data-status="△" aria-label="条件付き参加">△</button>`;
+    html += `<button class="att-btn att-btn-no${myStatus === '×' ? ' active' : ''}" data-action="quick-attendance" data-row-index="${session.rowIndex}" data-member="${escapeHtml(currentUser)}" data-status="×" aria-label="不参加">×</button>`;
+    html += `</div>`;
     html += `</div>`;
   }
 
@@ -1115,6 +1118,19 @@ function setupGlobalHandlers() {
           showAttendanceSelector(rowIndex, member);
         }
         break;
+
+      case 'quick-attendance': {
+        const status = target.dataset.status || '';
+        if (rowIndex !== null && member && status) {
+          if (status === '△') {
+            // △はメモ入力が必要なのでモーダルを開く
+            showAttendanceSelector(rowIndex, member);
+          } else {
+            handleAttendanceChange(rowIndex, member, status, '');
+          }
+        }
+        break;
+      }
 
       case 'open-settings':
         showScreen('settings');

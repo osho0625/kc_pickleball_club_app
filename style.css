@@ -1217,3 +1217,59 @@ select:focus-visible {
   background: var(--color-danger, #e74c3c);
   color: #fff;
 }
+
+/* 出欠3ボタン */
+.my-attendance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.my-attendance-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.my-attendance-buttons {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.att-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.att-btn:active {
+  transform: scale(0.95);
+}
+
+.att-btn-yes.active {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.att-btn-maybe.active {
+  background: rgba(241, 196, 15, 0.2);
+  border-color: #f1c40f;
+  color: #f1c40f;
+}
+
+.att-btn-no.active {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
